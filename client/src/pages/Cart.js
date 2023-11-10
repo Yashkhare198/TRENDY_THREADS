@@ -11,7 +11,9 @@ const Cart = () => {
   const productData = useSelector((state) => state.trendy.productData);
   const userInfo = useSelector((state) => state.trendy.userInfo);
   const [payNow, setPayNow] = useState(false);
-  const [totalAmt, setTotalAmt] = useState("");
+  const [totalAmt, setTotalAmt] = useState(0);
+  const [shippingAddresses, setShippingAddresses] = useState([]);
+  const [selectedShippingAddress, setSelectedShippingAddress] = useState(null);
 
   useEffect(() => {
     let price = 0;
@@ -19,29 +21,80 @@ const Cart = () => {
       price += item.price * item.quantity;
     });
     setTotalAmt(parseFloat(price.toFixed(2)));
-  }, [productData]);
+
+    if (userInfo && userInfo.email) {
+      // Fetch the user's shipping addresses from Firestore
+      fetchShippingAddresses(userInfo.email);
+    }
+  }, [productData, selectedShippingAddress]);
+
+  const fetchShippingAddresses = (loggedInEmail) => {
+    // Make the API request to fetch the user's shipping addresses
+    fetch(process.env.REACT_APP_FIREBASE_FETCH)
+      .then((response) => response.json())
+      .then((data) => {
+        if (data) {
+          // Convert the response data to an array of objects
+          const userDataArray = Object.values(data);
+
+          // Filter addresses with the matching email
+          const matchingAddresses = userDataArray.filter(
+            (user) => user.email === userInfo.email
+          );
+
+          if (matchingAddresses.length > 0) {
+            // Set the shipping addresses in the component state
+            setShippingAddresses(matchingAddresses);
+
+            // Initialize the selected address with the first one
+            if (!selectedShippingAddress) {
+              setSelectedShippingAddress(matchingAddresses[0]);
+            }
+          } else {
+            // No matching addresses found
+            console.log("No addresses with the logged-in email found.");
+          }
+        } else {
+          // No data available
+          console.log("No user data available.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching user data:", error);
+      });
+  };
 
   const handlePayment = async (token) => {
-    try {
-      // Send the token to your server for processing
-      const response = await axios.post("http://localhost:8000/create-payment-intent", {
-        amount: totalAmt * 100, // Convert the amount to cents
-        token: token.id, // Extract the token ID
-      });
+    if (selectedShippingAddress) {
+      try {
+        // Send the token and selected address to your server for processing
+        const response = await axios.post(
+          process.env.REACT_APP_SERVER_STRIPE,
+          {
+            amount: Math.round(totalAmt * 100), // Convert the amount to cents
+            token: token.id, // Extract the token ID
+            shippingAddress: selectedShippingAddress,
+          }
+        );
 
-      // Handle success case, e.g., show a confirmation message to the user
-      toast.success("Payment successful. Thank you for your order!");
-    } catch (error) {
-      // Handle error cases, e.g., show an error message to the user
-      toast.error("Payment failed. Please try again later.");
+        // Handle success case, e.g., show a confirmation message to the user
+        toast.success("Payment successful. Thank you for your order!");
+      } catch (error) {
+        // Handle error cases, e.g., show an error message to the user
+        toast.error("Payment failed. Please try again later.");
+      }
+    } else {
+      toast.error("Please select or add a shipping address before proceeding to checkout.");
     }
   };
 
   const handleCheckout = () => {
-    if (userInfo) {
+    if (userInfo && selectedShippingAddress) {
       setPayNow(true);
+    } else if (userInfo && !selectedShippingAddress) {
+      toast.error("Please select a shipping address or enter a new one");
     } else {
-      toast.error("Please sign in to Checkout");
+      toast.error("Please select a shipping address and sign in to Checkout");
     }
   };
 
@@ -53,9 +106,9 @@ const Cart = () => {
         alt="cartImg"
       />
       {productData.length > 0 ? (
-        <div className="max-w-screen-xl mx-auto py-20 flex">
+        <div className="max-w-screen-xl mx-auto py-20 flex flex-wrap">
           <CartItem />
-          <div className="w-1/3 bg-[#fafafa] py-6 px-4">
+          <div className="w-full sm:w-1/2 lg:w-1/3 bg-[#fafafa] py-6 px-4 relative">
             <div className="flex flex-col gap-6 border-b-[1px] border-b-gray-400 pb-6">
               <h2 className="text-2xl font-medium">Cart Totals</h2>
               <p className="flex items-center gap-4 text-base">
@@ -64,12 +117,31 @@ const Cart = () => {
                   ${totalAmt}
                 </span>
               </p>
-              <p className="flex items-start gap-4 text-base">
-                Shipping{" "}
-                <span>
-                  Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-                  Quos, veritatis.
-                </span>
+              <p className="flex items-start gap-4 text-base relative">
+                <div className="flex items-start gap-4 text-base relative">
+                  <h2 className="text-2xl font-medium">Shipping Address</h2>
+                  {userInfo && (
+                    <div className="w-full">
+                      <select
+                        className="border border-gray-300 rounded p-2 focus:outline-none focus:ring focus:border-blue-300 w-full"
+                        onChange={(e) => {
+                          const selectedId = e.target.value;
+                          const selectedAddress = shippingAddresses.find(
+                            (address) => address.id === selectedId
+                          );
+                          setSelectedShippingAddress(selectedAddress);
+                        }}
+                      >
+                        {shippingAddresses.map((address) => (
+                          <option key={address.id} value={address.id}>
+                            {address.street}, {address.city}, {address.state},{" "}
+                            {address.postalCode}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
               </p>
             </div>
             <p className="font-titleFont font-semibold flex justify-between mt-6">
@@ -77,15 +149,15 @@ const Cart = () => {
             </p>
             <button
               onClick={handleCheckout}
-              className="text-base bg-black text-white w-full py-3 mt-6 hover:bg-gray-800 duration-300"
-              disabled={payNow}
+              className="text-base bg-black text-white w-full py-3 mt-6 hover:bg-gray-800 hover-text-white duration-300"
             >
               Proceed to Checkout
             </button>
+
             {payNow && (
-              <div className="w-full mt-6 flex items-center justify-center">
+              <div className="mt-6 flex items-center justify-center">
                 <StripeCheckout
-                  stripeKey="pk_test_51NzBh2SDSfLweOQGR0Sx3UE22ktA8hLes0mWyA8xo1cR8SlGy7YRHdKB30WWdgvmUEuH2SGkRQUeGHKuawKklAfE00WXF02DOh"
+                  stripeKey={process.env.REACT_APP_STRIPE_PUBLIC_KEY}
                   name="Trendy Threads Online Shopping"
                   amount={totalAmt * 100}
                   label="Pay to Trendy Threads"
@@ -104,7 +176,7 @@ const Cart = () => {
             Cart.
           </p>
           <Link to="/">
-            <button className="flex items-center gap-1 text-gray-400 hover:text-black duration-300">
+            <button className="flex items-center gap-1 text-gray-400 hover-text-black duration-300">
               <span>Go Shop!</span>
             </button>
           </Link>

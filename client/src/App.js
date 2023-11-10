@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Product from "./components/Product";
 import Cart from "./pages/Cart";
+import DeliveryAddress from "./pages/DeliveryAddress";
 import Login from "./pages/Login";
 import {
   createBrowserRouter,
@@ -16,10 +17,12 @@ import { productsData } from "./api/Api";
 
 const Layout = () => {
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       <Header />
-      <ScrollRestoration /> {/* To bring to the top */}
-      <Outlet />
+      <div className="flex-grow">
+        <ScrollRestoration /> {/* To bring to the top */}
+        <Outlet />
+      </div>
       <Footer />
     </div>
   );
@@ -36,11 +39,17 @@ const router = createBrowserRouter([
         loader: productsData,
        
       },
+       
       {
         path: "/shop",
         element: <Shop />,
         loader: productsData,
       },
+      {
+        path: "/delivery-address",
+        element: <DeliveryAddress />
+      },
+     
 
       {
         path: "/product/:id",

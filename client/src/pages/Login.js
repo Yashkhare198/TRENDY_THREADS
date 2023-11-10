@@ -7,7 +7,7 @@ import {
 } from "firebase/auth";
 import { ToastContainer, toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
-import { addUser, removeUser } from "../redux/trendySlice";
+import { addUser, removeUser,resetCart } from "../redux/trendySlice";
 import { useNavigate } from "react-router-dom";
 import { githubLogo, googleLogo } from "../assets";
 
@@ -36,7 +36,9 @@ const Login = () => {
         );
         setTimeout(() => {
           navigate("/");
+         
         }, 1500);
+        toast.success("Logged in Successfully!");
       })
       .catch((error) => {
         // Handle Errors here.
@@ -49,7 +51,10 @@ const Login = () => {
     signOut(auth)
       .then(() => {
         // Sign-out successful.
-        toast.success("Log Out Successfully!");
+        toast.success("Logged Out Successfully!");
+       
+          dispatch(resetCart());
+       
         dispatch(removeUser());
       })
       .catch((error) => {
@@ -82,7 +87,7 @@ const Login = () => {
           </button>
         )}
       </div>
-      <div className="w-full flex items-center justify-center gap-10">
+      {/* <div className="w-full flex items-center justify-center gap-10">
         <div
           onClick={githubLogin}
           className="text-base w-60 h-12 tracking-wide border-[1px] border-gray-400 rounded-md flex items-center justify-center gap-2 hover:border-blue-600 cursor-pointer duration-300"
@@ -95,7 +100,7 @@ const Login = () => {
             Sign Out
           </button>
         )}
-      </div>
+      </div> */}
       <ToastContainer
         position="top-left"
         autoClose={2000}
