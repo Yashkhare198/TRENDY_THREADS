@@ -81,6 +81,7 @@ const Cart = () => {
         toast.success("Payment successful. Thank you for your order!");
       } catch (error) {
         // Handle error cases, e.g., show an error message to the user
+        console.error("Error processing payment:", error);
         toast.error("Payment failed. Please try again later.");
       }
     } else {
