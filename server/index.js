@@ -7,7 +7,7 @@ require("dotenv").config();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 app.get("/", (req, res) => {
@@ -48,6 +48,6 @@ app.post("/create-payment-intent", async (req, res) => {
   }
 });
 
-app.listen(port, () => {
+app.listen(port,'0.0.0.0',() => {
   console.log(`Server is running on Port ${port}`);
 });

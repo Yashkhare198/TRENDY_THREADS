@@ -1,0 +1,18 @@
+version: "3.8"
+services:
+  server:
+    build: ./server
+    container_name: ttserver_t
+    ports:
+      - 8000:8000
+
+
+  client:
+    build: ./client
+    container_name: ttclient_t
+    ports:
+      - 3000:3000
+
+
+
+
