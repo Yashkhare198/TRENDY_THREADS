@@ -89,11 +89,11 @@ function DeliveryAddress() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-     if (!address.name || !address.email || !address.phone || !address.street || !address.city || !address.state || !address.postalCode) {
-    toast.error("All fields are required.");
-    return;
-  }
-  }
+    if (!areAllFieldsFilled()) {
+      // Display an error message or handle it as needed
+      toast.error("Please fill in all fields.");
+      return;
+    }
 
     validateEmail(address.email);
     validatePhone(address.phone);
@@ -101,11 +101,12 @@ function DeliveryAddress() {
     if (errors.email || errors.phone) {
       return;
     }
+  };
 
     // Send the address data to your Node.js backend for storage in Firebase.
     // You can use the Fetch API or a library like Axios for making POST requests.
     // saveDataToFirestore();
-  };
+  
 
   //   const getData = async (e) => {
   //     fetch("https://trendy-threads-3f890-default-rtdb.firebaseio.com/UserData.json")
@@ -177,6 +178,11 @@ function DeliveryAddress() {
 
   const getData = async (e) => {
     e.preventDefault();
+    if (!areAllFieldsFilled()) {
+      // Display an error message or handle it as needed
+      toast.error("Please fill in all fields.");
+      return;
+    }
   
         const { name, email, phone, street, city, state, postalCode } = address;
        
@@ -200,12 +206,20 @@ function DeliveryAddress() {
               options
             );
             if (res.ok) {
-              alert("Data added");
+              toast.success("Delivery Address added successfully!");
             } else {
-              alert("Error occurred");
+              toast.error("Error occurred");
             }
           
         }
+        const areAllFieldsFilled = () => {
+          for (const value of Object.values(address)) {
+            if (value === "") {
+              return false;
+            }
+          }
+          return true;
+        };
       
 
   
