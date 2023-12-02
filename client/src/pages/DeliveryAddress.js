@@ -89,9 +89,10 @@ function DeliveryAddress() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-     if (!name || !email || !phone || !street || !city || !state || !postalCode) {
+     if (!address.name || !address.email || !address.phone || !address.street || !address.city || !address.state || !address.postalCode) {
     toast.error("All fields are required.");
     return;
+  }
   }
 
     validateEmail(address.email);
