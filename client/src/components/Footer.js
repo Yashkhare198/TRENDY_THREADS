@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
 import { images, logoLight, paymentLogo } from "../assets";
 import {
   
@@ -22,10 +23,10 @@ const Footer = () => {
 
   const handleSubscribe = () => {
     if (/^\S+@\S+\.\S+$/.test(email)) {
-      alert(`Subscribed with email: ${email}`);
+      toast.success(`Subscribed with email: ${email}`);
       setEmail("");
     } else {
-      alert("Please enter a valid email address.");
+      toast.error("Please enter a valid email address.");
     }
   };
 
@@ -138,7 +139,20 @@ const Footer = () => {
       </div>
 
       {popupMessage && <PopupMessage message={popupMessage} onClose={() => setPopupMessage("")} />}
+      <ToastContainer
+        position="top-left"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
     </div>
+    
   );
 };
 
